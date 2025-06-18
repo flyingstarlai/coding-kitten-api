@@ -1,0 +1,25 @@
+@host = http://localhost:3000
+
+### Register a new user
+POST {{host}}/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePass123",
+  "name": "John Doe"
+}
+
+### Login and capture JWT token
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePass123"
+}
+
+> {%
+    client.global.set("api_token", response.body["token"]);
+%}

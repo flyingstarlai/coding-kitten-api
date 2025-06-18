@@ -1,0 +1,11 @@
+services:
+  api:
+    image: coding-kitten-api:0.0.1
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://kitten:codekitten@192.168.1.19:5432/coding-kitten-db
+      JWT_SECRET: your-very-strong-secret
+    ports:
+      - "3000:3000"
+    command: sh -c "bun prisma migrate deploy && bun run src/index.ts"

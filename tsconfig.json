@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target":       "ES2022",
+    "module":       "ESNext",
+    "moduleResolution": "node",
+    "strict":       true,
+    "esModuleInterop":   true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "skipLibCheck": true,
+    "noEmitOnError": false,
+  },
+  "include": ["src", "test"],
+  "exclude": [
+    "src/generated",
+    "bun.d.ts"
+  ]
+}
