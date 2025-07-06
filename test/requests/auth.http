@@ -6,9 +6,9 @@ Accept: application/json
 Content-Type: application/json
 
 {
-  "email": "user@example.com",
-  "password": "SecurePass123",
-  "name": "John Doe"
+  "email": "teacher2@test.com",
+  "password": "TeacherPass123",
+  "name": "Demo Teacher 2"
 }
 
 ### Login and capture JWT token
@@ -16,10 +16,25 @@ POST {{host}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "user@example.com",
-  "password": "SecurePass123"
+  "email": "teacher@test.com",
+  "password": "TeacherPass123"
 }
 
 > {%
     client.global.set("api_token", response.body["token"]);
 %}
+
+### Login and capture JWT token
+POST {{host}}/auth/login/student
+Content-Type: application/json
+
+{
+  "code": "148779",
+  "username": "mokakit",
+  "password": "wa673478"
+}
+
+### Get User Response
+GET {{host}}/api/me
+Content-Type: application/json
+Authorization: Bearer {{api_token}}

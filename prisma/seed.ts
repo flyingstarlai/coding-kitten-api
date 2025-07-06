@@ -1,62 +1,91 @@
-import { PrismaClient } from '../src/generated/prisma'
+import { PrismaClient, Role } from '../src/generated/prisma'
 import { slugify } from '../src/utils/slugify'
-import {logger} from "../src/middleware/logger";
+import { logger } from '../src/middleware/logger'
+import fs from 'fs/promises'
+import path from 'path'
 
 const prisma = new PrismaClient()
 
+
+async function loadLevelData(courseSlug: string, level: number) {
+    const filePath = path.join(__dirname,'levels', courseSlug, `level${level}.json`)
+    const raw = await fs.readFile(filePath, 'utf8')
+    return JSON.parse(raw)
+}
+
 async function main() {
-
-    logger.info('Deleting existing assignments and courses...')
-    await prisma.assignment.deleteMany()
+    logger.info('❌ Deleting existing data...')
+    // Delete in order of dependencies
+    await prisma.score.deleteMany()
+    await prisma.assignedCourse.deleteMany()
+    await prisma.challenge.deleteMany()
+    await prisma.enrollment.deleteMany()
+    await prisma.classroom.deleteMany()
     await prisma.course.deleteMany()
+    await prisma.user.deleteMany()
 
-    // Seed courses
-    const courseData = ['Sequence', 'Loops', 'Conditional Loops', 'Procedure'].map((title) => ({
-        title,
-        description: `Learn about ${title.toLowerCase()} for junior coders.`,
-        slug: slugify(title),
-    }))
+    // 1) Seed admin user
+    const adminPassword = await Bun.password.hash('AdminPass123', 'bcrypt')
+    const admin = await prisma.user.create({
+        data: {
+            email: 'admin@test.com',
+            password: adminPassword,
+            name: 'Site Admin',
+            role: Role.ADMIN,
+        },
+    })
+    logger.info(`✅ Admin seeded: ${admin.email}`)
 
-    logger.info('Seeding courses...')
-    for (const course of courseData) {
-        await prisma.course.upsert({
-            where: { slug: course.slug },
-            update: {
-                title: course.title,
-                description: course.description,
-            },
-            create: {
-                title: course.title,
-                description: course.description,
-                slug: course.slug,
+    // 2) Seed teacher user
+    const teacherPassword = await Bun.password.hash('TeacherPass123', 'bcrypt')
+    const teacher = await prisma.user.create({
+        data: {
+            email: 'teacher@test.com',
+            password: teacherPassword,
+            name: 'Demo Teacher',
+            role: Role.TEACHER,
+        },
+    })
+    logger.info(`✅ Teacher seeded: ${teacher.email}`)
+
+    // 3) Seed courses
+    const courseTitles = ['Sequence', 'Loops', 'Conditional Loops', 'Procedure']
+    const courses: { id: string; slug: string }[] = []
+    for (const title of courseTitles) {
+        const slug = slugify(title)
+        const course = await prisma.course.create({
+            data: {
+                title,
+                slug,
+                description: `Learn about ${title.toLowerCase()} for junior coders.`,
+                enable: title === "Sequence"
             },
         })
-        logger.info(`✅ Upserted course: ${course.title}`)
+        courses.push({ id: course.id, slug })
+        logger.info(`✅ Course created: ${title}`)
     }
 
-    // Seed assignments for each course: Level 1 to Level 15
-    const courses = await prisma.course.findMany()
-    console.log('Seeding assignments...')
+    // 4) Seed challenges with levelData
+    logger.info('📝 Seeding challenges (1-15) with levelData for each course...')
+    for (const { id: courseId, slug } of courses) {
 
-    for (const course of courses) {
         for (let level = 1; level <= 15; level++) {
-            const title = `Level ${level}`
-            const exists = await prisma.assignment.findFirst({
-                where: { courseId: course.id, level },
+            const levelData = await loadLevelData(slug, level)
+            await prisma.challenge.create({
+                data: {
+                    courseId,
+                    level,
+                    title: `Level ${level}`,
+                    description: null,
+                    levelData,
+                    createdAt: new Date(),
+                },
             })
-            if (!exists) {
-                await prisma.assignment.create({
-                    data: {
-                        courseId: course.id,
-                        level,
-                        title,
-                        description: null,
-                    },
-                })
-                logger.info(`   ➕ Created assignment '${title}' for course '${course.slug}'`)
-            }
         }
+        logger.info(`   ✅ Challenges seeded for course '${slug}'`)
     }
+
+    logger.info('🎉 Database seeding complete')
 }
 
 main()

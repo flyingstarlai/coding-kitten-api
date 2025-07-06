@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "noEmitOnError": false,
   },
-  "include": ["src", "test"],
+  "include": ["src", "test", "prisma/seed.ts"],
   "exclude": [
     "src/generated",
     "bun.d.ts"

@@ -14,100 +14,114 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum Role {
   ADMIN
   TEACHER
   STUDENT
 }
 
-
 model User {
-  id           String       @id @default(cuid())
-  email        String         @unique
-  password     String
-  name         String?
-  role         Role           @default(TEACHER)
-  createdAt    DateTime       @default(now())
-  deletedAt    DateTime?
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(TEACHER)
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
 
-  classrooms       Classroom[]        @relation("TeacherClassrooms")
-  enrollments      Enrollment[]
-  progresses       Mark[]
+  classrooms  Classroom[]  @relation("TeacherClassrooms")
+  enrollments Enrollment[]
+  scores      Score[]
+
+  defaultClassroomId String?
+  defaultClassroom   Classroom? @relation("UserDefaultClassroom", fields: [defaultClassroomId], references: [id])
 }
 
-
 model Classroom {
-  id           String           @id @default(cuid())
-  name         String
-  code         String           @unique
-  teacher      User             @relation("TeacherClassrooms", fields: [teacherId], references: [id])
-  teacherId    String
-  createdAt    DateTime         @default(now())
-  maxStudents  Int              @default(30)
-  deletedAt    DateTime?
+  id          String    @id @default(cuid())
+  name        String
+  code        String    @unique
+  teacher     User      @relation("TeacherClassrooms", fields: [teacherId], references: [id])
+  teacherId   String
+  createdAt   DateTime  @default(now())
+  maxStudents Int       @default(30)
+  deletedAt   DateTime?
 
-  enrollments       Enrollment[]
-  classroomCourses  ClassroomCourse[]
+  enrollments     Enrollment[]
+  assignedCourses AssignedCourse[]
+
+  defaultForUsers User[] @relation("UserDefaultClassroom")
 }
 
 model Enrollment {
-  id           String        @id @default(cuid())
-  classroom    Classroom     @relation(fields: [classroomId], references: [id])
-  classroomId  String
-  username     String
-  student      User          @relation(fields: [studentId], references: [id])
-  studentId    String
-  invitedAt    DateTime      @default(now())
-  joinedAt     DateTime?
-  deletedAt    DateTime?
+  id          String    @id @default(cuid())
+  classroom   Classroom @relation(fields: [classroomId], references: [id])
+  classroomId String
+  username    String
+  student     User      @relation(fields: [studentId], references: [id])
+  studentId   String
+  invitedAt   DateTime  @default(now())
+  joinedAt    DateTime?
+  deletedAt   DateTime?
 
   @@unique([classroomId, username])
-
 }
 
 model Course {
-  id            String       @id @default(cuid())
-  title        String
-  slug         String         @unique
-  description  String?
-  createdAt    DateTime      @default(now())
-  deletedAt    DateTime?
-
-  assignments       Assignment[]
-  classroomCourses  ClassroomCourse[]
+  id              String           @id @default(cuid())
+  title           String
+  slug            String           @unique
+  description     String?
+  createdAt       DateTime         @default(now())
+  deletedAt       DateTime?
+  enable          Boolean @default(false)
+  assignedCourses AssignedCourse[]
+  challenges      Challenge[]
 }
 
-model Assignment {
-  id           String           @id @default(cuid())
-  course       Course           @relation(fields: [courseId], references: [id])
+model Challenge {
+  id           String    @id @default(cuid())
+  course       Course    @relation(fields: [courseId], references: [id])
   courseId     String
   level        Int
+  levelData    Json
   title        String
+  isLocked     Boolean   @default(true)
   description  String?
-  createdAt    DateTime         @default(now())
+  createdAt    DateTime  @default(now())
   deletedAt    DateTime?
 
-  marks   Mark[]
+  scores       Score[]
+
+  @@unique([courseId, level])
 }
 
-model ClassroomCourse {
-  id           String        @id @default(cuid())
-  classroom    Classroom     @relation(fields: [classroomId], references: [id])
-  classroomId  String
-  course       Course        @relation(fields: [courseId], references: [id])
-  courseId     String
-  addedAt      DateTime      @default(now())
-  deletedAt    DateTime?
+model AssignedCourse {
+  id            String    @id @default(cuid())
+  classroom     Classroom @relation(fields: [classroomId], references: [id])
+  classroomId   String
+  course        Course    @relation(fields: [courseId], references: [id])
+  courseId      String
+  isAssigned    Boolean   @default(false)
+  addedAt       DateTime  @default(now())
+  deletedAt     DateTime?
+
+  scores        Score[]   // each student’s score on each challenge
+
+  @@unique([classroomId, courseId])
 }
 
-model Mark {
-  id            String       @id @default(cuid())
-  student       User           @relation(fields: [studentId], references: [id])
-  studentId     String
-  assignment    Assignment     @relation(fields: [assignmentId], references: [id])
-  assignmentId  String
-  stars         Int          @default(0)
-  updatedAt     DateTime       @updatedAt
-  deletedAt    DateTime?
+model Score {
+  id               String           @id @default(cuid())
+  student          User             @relation(fields: [studentId], references: [id])
+  studentId        String
+  assignedCourse   AssignedCourse   @relation(fields: [assignedCourseId], references: [id])
+  assignedCourseId String
+  challenge        Challenge        @relation(fields: [challengeId], references: [id])
+  challengeId      String
+  stars            Int              @default(0)
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+
+  @@unique([studentId, assignedCourseId, challengeId])
 }

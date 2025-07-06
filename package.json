@@ -2,13 +2,17 @@
   "name": "coding-kitten-api",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "seed": "bun run prisma/seed.ts"
+    "bundle": "bun bundle src/index.ts --outfile dist/app.js",
+    "db:seed": "bun run prisma/seed.ts",
+    "db:reset": "bunx prisma migrate reset --force --skip-seed",
+    "db:deploy": "bun prisma migrate deploy && bun prisma generate"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.0",
     "@prisma/client": "^6.9.0",
     "hono": "^4.7.11",
     "winston": "^3.17.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.67"
   },
   "devDependencies": {

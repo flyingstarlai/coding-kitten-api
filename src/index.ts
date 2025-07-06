@@ -1,10 +1,12 @@
 import { Hono } from 'hono'
 import {loggerMiddleware} from "./middleware/logger";
 import {authRoutes} from "./features/auth/route";
-import {usersRoutes} from "./features/users/route";
-import {jwt, type JwtVariables} from 'hono/jwt'
-import {coursesRoutes} from "./features/courses/route";
-import {classroomsRoutes} from "./features/classrooms/route";
+import { type JwtVariables} from 'hono/jwt'
+import { cors } from 'hono/cors'
+import {teacherApi} from "./features/teacher/api";
+import {studentApi} from "./features/student/api";
+import {jwt} from "hono/jwt";
+import {meRoutes} from "./features/me/route";
 
 type Variables = JwtVariables
 
@@ -12,21 +14,27 @@ const app = new Hono<{ Variables: Variables }>()
 
 app.use('*', loggerMiddleware)
 
+app.use('*', cors({
+  // allow your Vite dev origin
+  origin: ['http://localhost:5173', 'https://kodemeo.xyz', 'https://juniorcoder.id', 'https://learn.juniorcoder.id'],
+  allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+}))
+
+app.use('/api/*',  jwt({
+  secret: process.env.JWT_SECRET!,
+}))
+
 app.get('/', (c) => {
-  return c.text('Hello Hono!')
+  return c.text('You shouldn\'t be here. The backend doesn\'t like visitors.')
 })
 
 app.route('/auth', authRoutes)
 
 
-app.use('/api/*',  jwt({
-  secret: process.env.JWT_SECRET!,
-}))
-app.get('/api/protected', (c) => {
-  return c.text('This is a protected')
-})
-app.route('/api/users', usersRoutes)
-app.route('/api/courses', coursesRoutes)
-app.route('/api/room', classroomsRoutes)
+
+app.route('/api/me', meRoutes)
+app.route('/api/teacher', teacherApi)
+app.route('/api/student', studentApi)
 
 export default app

@@ -1,0 +1,40 @@
+### @name = Student Begin Challenge
+@host = http://localhost:3000
+@classroomId = REPLACE_WITH_CLASSROOM_ID
+@assignedCourseId = REPLACE_WITH_ASSIGNED_COURSE_ID
+@challengeId = REPLACE_WITH_CHALLENGE_ID
+@api_token =
+
+POST {{host}}/api/student/assignments/{{classroomId}}/{{assignedCourseId}}/begin
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{
+  "challengeId": "{{challengeId}}"
+}
+
+> {%
+    // save the HMAC token and timestamp for use in the complete request
+    client.global.set("begin_token", response.body.token);
+    client.global.set("begin_timestamp", response.body.timestamp);
+%}
+
+
+### @name = Student Complete Challenge
+@stars = 2
+
+POST {{host}}/api/student/assignments/{{classroomId}}/{{assignedCourseId}}/complete
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{
+  "challengeId": "{{challengeId}}",
+  "stars": {{stars}},
+  "token": "{{begin_token}}",
+  "timestamp": "{{begin_timestamp}}"
+}
+
+
+### @name = List My Challenge Scores
+GET {{host}}/api/student/assignments/{{classroomId}}/{{assignedCourseId}}
+Authorization: Bearer {{api_token}}

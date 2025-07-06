@@ -1,0 +1,53 @@
+### @name = Teacher Users
+
+
+### 1. Teacher/Admin login (capture JWT)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@test.com",
+  "password": "TeacherPass123"
+}
+> {%
+    client.global.set("user_id", response.body["id"]);
+    client.global.set("api_token", response.body["token"]);
+%}
+
+
+### Get all users (protected)
+GET {{host}}/{{teacher}}/users
+Authorization: Bearer {{api_token}}
+
+
+
+### Get a single user by ID (protected)
+GET {{host}}/{{teacher}}/users/{{user_id}}
+Authorization: Bearer {{api_token}}
+
+### Update a user (protected)
+PUT {{host}}/{{teacher}}/users/{{user_id}}
+Content-Type: application/json
+Authorization: Bearer {{api_token}}
+
+{
+  "name": "Alice Updated",
+  "password": "NewPass456"
+}
+
+###  Update Default Classroom
+PUT {{host}}/{{teacher}}/users/{{user_id}}
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{
+  "defaultClassroomId": "{{default_classroom}}"
+}
+
+### Delete a user (protected)
+DELETE {{host}}/{{teacher}}/users/{{user_id}}
+Authorization: Bearer {{api_token}}
+
+### Restore a user (protected)
+PATCH {{host}}/{{teacher}}/users/{{user_id}}/restore
+Authorization: Bearer {{api_token}}

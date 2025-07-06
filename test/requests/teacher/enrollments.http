@@ -1,0 +1,42 @@
+### @name = Dev
+@host = http://localhost:3000
+
+
+### 1. Teacher/Admin login (capture JWT)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@test.com",
+  "password": "TeacherPass123"
+}
+> {%
+    client.global.set("token", response.body["token"]);
+%}
+
+### 2. Create a single enrollment
+POST {{host}}/{{teacher}}/enrollments/{{default_classroom}}
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{
+  "username": "student1",
+  "password": "Pass123!",
+  "name": "Alice"
+}
+
+### 3. Bulk import enrollments from Excel
+POST {{host}}/{{teacher}}/enrollments/{{default_classroom}}/import
+Authorization: Bearer {{api_token}}
+Content-Type: multipart/form-data; boundary=----Boundary
+
+------Boundary
+Content-Disposition: form-data; name="file"; filename="indonesian_students.xlsx"
+Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+< ./indonesian_students.xlsx
+------Boundary--
+
+### 4. List all enrollments for a classroom
+GET {{host}}/{{teacher}}/enrollments/{{default_classroom}}
+Authorization: Bearer {{api_token}}

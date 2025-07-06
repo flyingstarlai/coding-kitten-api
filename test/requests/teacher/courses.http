@@ -1,0 +1,57 @@
+### @name = Teacher Courses
+@courseId = cmc4v8bi00000q4e9ceots2bs
+
+### 1. Login (to populate @api_token)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@test.com",
+  "password": "TeacherPass123"
+}
+
+> {%
+    client.global.set("api_token", response.body["token"]);
+%}
+
+### 2. List all courses
+GET {{host}}/{{teacher}}/courses
+Authorization: Bearer {{api_token}}
+
+> {%
+    const courses = response.body;
+    client.global.set("course_id_1", courses[0]?.id || "");
+    client.global.set("course_id_2", courses[1]?.id || "");
+%}
+
+### 3. Get one course by ID
+GET {{host}}/{{teacher}}/courses/{{courseId}}
+Authorization: Bearer {{api_token}}
+
+### 4. Create a new course
+POST {{host}}/{{teacher}}/courses
+Content-Type: application/json
+Authorization: Bearer {{api_token}}
+
+{
+  "title": "New Course Title",
+  "description": "A description for the new course"
+}
+
+### 5. Update a course
+PUT {{host}}/{{teacher}}/courses/{{courseId}}
+Content-Type: application/json
+Authorization: Bearer {{api_token}}
+
+{
+  "title": "Updated Title",
+  "description": "Updated description"
+}
+
+### 6. Soft-delete a course
+DELETE {{host}}/{{teacher}}/courses/{{courseId}}
+Authorization: Bearer {{api_token}}
+
+### 7. Restore a soft-deleted course
+PATCH {{host}}/{{teacher}}/courses/{{courseId}}/restore
+Authorization: Bearer {{api_token}}

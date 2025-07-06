@@ -1,21 +1,33 @@
-# Build arguments for Bun and Node versions
-ARG BUN_VERSION=1.2.16
-ARG NODE_VERSION=22
+FROM oven/bun:1.2.16-alpine AS builder
 
-# ----------
-# Production stage
-# ----------
-FROM imbios/bun-node:${BUN_VERSION}-${NODE_VERSION}-slim AS production
 WORKDIR /app
-ENV NODE_ENV=production
 
-COPY bun.lock package.json prisma/schema.prisma ./
+COPY package.json package.json
+COPY bun.lock bun.lock
 
-# Install all dependencies (skip lifecycle scripts) and generate Prisma client
 RUN bun install --ignore-scripts
 
-COPY src/ src/
+COPY ./src ./src
+COPY ./prisma/schema.prisma ./prisma/schema.prisma
 
-# Expose application port and run migrations + server on start
+RUN bun prisma generate
+
+RUN bun build \
+    --compile \
+    --minify-whitespace \
+    --minify-syntax \
+    --target bun \
+    --outfile server \
+    ./src/index.ts
+
+
+FROM oven/bun:1.2.16-alpine AS production
+WORKDIR /app
+
+ENV NODE_ENV=production
+COPY --from=builder /app/src/generated/   src/generated/
+COPY --from=builder /app/server           server
+
+CMD ["./server"]
+
 EXPOSE 3000
-CMD ["sh", "-c", "bun run src/index.ts"]

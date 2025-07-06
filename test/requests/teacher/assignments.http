@@ -1,0 +1,36 @@
+### @name = Dev
+@courseSlug = procedure
+@classroom = cmcag46m0002zq4iljkojm9ry
+
+### 1. Login (to populate @api_token)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@test.com",
+  "password": "TeacherPass123"
+}
+
+> {%
+    client.global.set("api_token", response.body["token"]);
+%}
+
+### Assign Courses to Classroom
+POST {{host}}/{{teacher}}/assignments/{{default_classroom}}
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{
+  "courseIds": [
+    "{{course_id_1}}",
+    "{{course_id_2}}"
+  ]
+}
+
+### List all assigned courses for a classroom
+GET {{host}}/{{teacher}}/assignments/{{classroom}}
+Authorization: Bearer {{api_token}}
+
+### List students’ challenges & scores by course slug
+GET {{host}}/{{teacher}}/assignments/{{classroom}}/{{courseSlug}}
+Authorization: Bearer {{api_token}}

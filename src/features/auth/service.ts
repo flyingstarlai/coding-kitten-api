@@ -1,12 +1,11 @@
 import {prisma } from "../../db";
-import {Role,  User as PrismaUser} from '../../generated/prisma'
+import {Role,  User as PrismaUser} from "../../generated/prisma"
 import {sign} from "hono/jwt";
 import {JWTPayload} from "hono/dist/types/utils/jwt/types";
 import {RegisterUser} from "./model";
-import {toUserResponse} from "../users/model";
 
 export const createUser = (data: RegisterUser) =>
-    prisma.user.create({ data }).then(toUserResponse)
+    prisma.user.create({ data })
 
 export const findUserByEmail = (email: string) =>
     prisma.user.findUnique({ where: { email } })

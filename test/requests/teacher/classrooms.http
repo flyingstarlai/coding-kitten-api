@@ -1,0 +1,73 @@
+### @name = Dev
+ 
+### 1. Login (to populate @api_token)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "teacher@test.com",
+  "password": "TeacherPass123"
+}
+
+> {%
+    client.global.set("api_token", response.body["token"]);
+%}
+
+### 2. List all rooms
+GET {{host}}/{{teacher}}/classrooms
+Authorization: Bearer {{api_token}}
+
+### 3. Get one room by ID
+GET {{host}}/{{teacher}}/classrooms/{{default_classroom}}
+Authorization: Bearer {{api_token}}
+
+### 4. Create a new classroom
+POST {{host}}/{{teacher}}/classrooms
+Content-Type: application/json
+Authorization: Bearer {{api_token}}
+
+{
+  "name": "Test Room",
+  "maxStudents": 30
+}
+
+> {%
+    // store the new classroom ID as default_classroom
+    client.global.set("default_classroom", response.body.id);
+%}
+
+
+
+
+### 5. Update a room
+PUT {{host}}/{{teacher}}/classrooms/{{default_classroom}}
+Content-Type: application/json
+Authorization: Bearer {{api_token}}
+
+{
+  "name": "Updated Room"
+}
+
+### 6. Soft-delete a room
+DELETE {{host}}/{{teacher}}/classrooms/{{default_classroom}}
+Authorization: Bearer {{api_token}}
+
+### 7. Restore a soft-deleted room
+PATCH {{host}}/{{teacher}}/classrooms/{{default_classroom}}/restore
+Authorization: Bearer {{api_token}}
+
+### 8. Assign multiple courses to a classroom
+POST {{host}}/{{teacher}}/classrooms/{{default_classroom}}/courses
+Authorization: Bearer {{api_token}}
+Content-Type: application/json
+
+{
+  "courseIds": [
+    "cmc4v8bi80003q4e95tg546fm",
+    "cmc4v8bi70002q4e9ppuv0hos"
+  ]
+}
+
+### @name = List Assigned Courses for Student
+GET {{host}}/{{teacher}}/classrooms/{{default_classroom}}/student
+Authorization: Bearer {{api_token}}
