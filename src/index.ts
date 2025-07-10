@@ -16,7 +16,7 @@ app.use('*', loggerMiddleware)
 
 app.use('*', cors({
   // allow your Vite dev origin
-  origin: ['http://localhost:5173', 'https://kodemeo.xyz', 'https://juniorcoder.id', 'https://learn.juniorcoder.id'],
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'https://teach.juniorcoder.id', 'https://juniorcoder.id', 'https://learn.juniorcoder.id'],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 }))
