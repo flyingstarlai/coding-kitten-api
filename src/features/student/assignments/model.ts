@@ -10,12 +10,12 @@ export interface CompletionResponse {
 }
 
 export type StudentChallengeResponse = {
-    challengeId: string
+    id: string
+    week: number
     level: number
     title: string
     stars: number
     isLocked: boolean
-    levelData: LevelData
 }
 
 export type LevelData = {

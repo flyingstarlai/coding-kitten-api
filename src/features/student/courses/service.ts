@@ -11,7 +11,10 @@ export const listAssignedCoursesForStudent = async (
         include: {
             course: { select: { id: true, title: true, slug: true, description: true } }
         },
-        orderBy: { addedAt: 'asc' }
+        orderBy: [
+            { course: { order: 'asc' } },
+            { addedAt: 'asc' },
+        ],
     })
 
     const assignedIds = assignments.map(a => a.id)
@@ -30,6 +33,7 @@ export const listAssignedCoursesForStudent = async (
         courseId: a.course.id,
         title: a.course.title,
         slug: a.course.slug,
+        availableWeek: a.availableWeek,
         description: a.course.description,
         addedAt: a.addedAt,
         isEnrolled: enrolledSet.has(a.id),

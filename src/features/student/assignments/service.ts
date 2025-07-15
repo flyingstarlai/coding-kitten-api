@@ -1,7 +1,6 @@
-// src/features/assignments/service.ts
 import { createHmac, timingSafeEqual } from 'crypto'
 import { prisma } from '../../../db'
-import {BeginResponse, CompletionResponse, LevelData, StudentChallengeResponse} from './model'
+import {BeginResponse, CompletionResponse, StudentChallengeResponse} from './model'
 
 const SECRET = process.env.LEVEL_SECRET!
 if (!SECRET) throw new Error('Missing LEVEL_SECRET')
@@ -130,16 +129,16 @@ export async function listChallengesForStudent(
 ): Promise<StudentChallengeResponse[]> {
     const assignment = await prisma.assignedCourse.findFirst({
         where: { classroomId, isAssigned: true, deletedAt: null, course: { slug: courseSlug } },
-        select: { id: true, courseId: true }
+        select: { id: true, courseId: true, availableWeek: true }
     })
     if (!assignment) {
         throw new Error('Assignment not found for classroom/course')
     }
     const { id: assignedCourseId, courseId } = assignment
     const challenges = await prisma.challenge.findMany({
-        where: { courseId, deletedAt: null },
+        where: { courseId,  week: { lte: assignment.availableWeek }, deletedAt: null },
         orderBy: { level: 'asc' },
-        select: { id: true, level: true, title: true, levelData: true }
+        select: { id: true, level: true, title: true, week: true }
     })
     const scores = await prisma.score.findMany({
         where: { assignedCourseId, studentId, deletedAt: null },
@@ -154,18 +153,13 @@ export async function listChallengesForStudent(
 
     return challenges.map(ch => {
         const unlocked = ch.level === 1 || completedLevels.has(ch.level - 1)
-        const raw = ch.levelData as unknown
-        const levelData: LevelData =
-            typeof raw === 'string'
-                ? JSON.parse(raw)
-                : (raw as LevelData)
         return {
-            challengeId: ch.id,
+            id: ch.id,
+            week: ch.week,
             level: ch.level,
             title: ch.title,
             stars: starsMap.get(ch.id) ?? 0,
             isLocked: !unlocked,
-            levelData
         }
     })
 }

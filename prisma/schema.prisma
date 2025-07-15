@@ -69,6 +69,7 @@ model Enrollment {
 
 model Course {
   id              String           @id @default(cuid())
+  order           Int
   title           String
   slug            String           @unique
   description     String?
@@ -83,8 +84,9 @@ model Challenge {
   id           String    @id @default(cuid())
   course       Course    @relation(fields: [courseId], references: [id])
   courseId     String
+  week         Int
   level        Int
-  levelData    Json
+  levelData    Json?
   title        String
   isLocked     Boolean   @default(true)
   description  String?
@@ -106,6 +108,7 @@ model AssignedCourse {
   addedAt       DateTime  @default(now())
   deletedAt     DateTime?
 
+  availableWeek  Int       @default(1)
   scores        Score[]   // each student’s score on each challenge
 
   @@unique([classroomId, courseId])

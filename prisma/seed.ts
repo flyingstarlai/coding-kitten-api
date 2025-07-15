@@ -1,13 +1,13 @@
 import { PrismaClient, Role } from '../src/generated/prisma'
-import { slugify } from '../src/utils/slugify'
 import { logger } from '../src/middleware/logger'
 import fs from 'fs/promises'
 import path from 'path'
+import {courseData} from "./course-data";
 
 const prisma = new PrismaClient()
 
 
-async function loadLevelData(courseSlug: string, level: number) {
+export async function loadLevelData(courseSlug: string, level: number) {
     const filePath = path.join(__dirname,'levels', courseSlug, `level${level}.json`)
     const raw = await fs.readFile(filePath, 'utf8')
     return JSON.parse(raw)
@@ -49,35 +49,35 @@ async function main() {
     logger.info(`✅ Teacher seeded: ${teacher.email}`)
 
     // 3) Seed courses
-    const courseTitles = ['Sequence', 'Loops', 'Conditional Loops', 'Procedure']
     const courses: { id: string; slug: string }[] = []
-    for (const title of courseTitles) {
-        const slug = slugify(title)
-        const course = await prisma.course.create({
+    for (const data of courseData) {
+         const course = await prisma.course.create({
             data: {
-                title,
-                slug,
-                description: `Learn about ${title.toLowerCase()} for junior coders.`,
-                enable: title === "Sequence"
+                title: data.title,
+                order: data.order,
+                slug: data.slug,
+                description: data.description,
+                enable: true
             },
         })
-        courses.push({ id: course.id, slug })
-        logger.info(`✅ Course created: ${title}`)
+        courses.push({ id: course.id, slug: course.slug })
+        logger.info(`✅ Course created: ${data.title}`)
     }
 
     // 4) Seed challenges with levelData
-    logger.info('📝 Seeding challenges (1-15) with levelData for each course...')
+    logger.info('📝 Seeding challenges (1-48) with levelData for each course...')
+    const LEVELS_PER_WEEK = 12
     for (const { id: courseId, slug } of courses) {
 
-        for (let level = 1; level <= 15; level++) {
-            const levelData = await loadLevelData(slug, level)
+        for (let level = 1; level <= 48; level++) {
+            const week = Math.ceil(level / LEVELS_PER_WEEK)
             await prisma.challenge.create({
                 data: {
                     courseId,
                     level,
+                    week,
                     title: `Level ${level}`,
                     description: null,
-                    levelData,
                     createdAt: new Date(),
                 },
             })

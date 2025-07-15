@@ -4,6 +4,7 @@
     "dev": "bun run --hot src/index.ts",
     "bundle": "bun bundle src/index.ts --outfile dist/app.js",
     "db:seed": "bun run prisma/seed.ts",
+    "db:seed2": "bun run prisma/seed-sequence.ts",
     "db:reset": "bunx prisma migrate reset --force --skip-seed",
     "db:deploy": "bun prisma migrate deploy && bun prisma generate"
   },

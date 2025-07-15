@@ -19,7 +19,10 @@ export const listAssignedCoursesByClassroom = async (
                 select: { id: true, title: true, slug: true, description: true }
             }
         },
-        orderBy: { addedAt: 'asc' }
+        orderBy: [
+            { course: { order: 'asc' } },
+            { addedAt: 'asc' },
+        ],
     })
 
     return rows.map((ac) => ({
