@@ -9,11 +9,11 @@ export const listCourses = (): Promise<CourseResponse[]> =>
 
 
 export const createCourse = async (
-    data: { title: string; description?: string }
+    data: { title: string; description?: string; }
 ): Promise<CourseResponse> => {
     const slug = slugify(data.title);
     const course = await prisma.course
-        .create({data: {...data, slug}});
+        .create({data: {...data, order: 100, slug}});
     return toCourseResponse(course);
 }
 

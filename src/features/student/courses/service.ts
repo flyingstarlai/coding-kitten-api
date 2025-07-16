@@ -75,7 +75,7 @@ export const listAssignedCoursesForStudent = async (
      // 3) Fetch challenges linked to this assignment
      const challenges = await prisma.challenge.findMany({
          where: { courseId:  assignment.courseId , deletedAt: null },
-         select: { id: true, level: true, title: true },
+         select: { id: true, level: true, title: true, week: true },
          orderBy: { level: 'asc' },
      })
 
@@ -102,6 +102,7 @@ export const listAssignedCoursesForStudent = async (
          const meta = challenges.find((c) => c.id === s.challengeId)!
          return {
              challengeId: s.challengeId,
+             week: meta.week,
              level: meta.level,
              title: meta.title,
              stars: s.stars,

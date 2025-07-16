@@ -2,6 +2,7 @@ import {AssignedCourseWithCourse} from "../classrooms/model";
 
 export type StudentChallengeScore = {
     challengeId: string
+    week: number
     level: number
     title: string
     stars: number
@@ -20,6 +21,7 @@ export type StudentScoresResponse = {
 export type AssignedCourseResponse = {
     id: string
     classroomId: string
+    availableWeek: number
     courseId: string
     isAssigned: boolean
     addedAt: Date
@@ -34,6 +36,7 @@ export type AssignedCourseResponse = {
 export const toAssignedCourseResponse = (cc: AssignedCourseWithCourse): AssignedCourseResponse => ({
     id: cc.id,
     classroomId: cc.classroomId,
+    availableWeek: cc.availableWeek,
     courseId: cc.courseId,
     isAssigned: cc.isAssigned,
     addedAt: cc.addedAt,

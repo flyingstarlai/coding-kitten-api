@@ -1,9 +1,4 @@
-import {
-    AssignedCourseResponse,
-    StudentChallengeScore,
-    StudentScoresResponse,
-    toAssignedCourseResponse
-} from "./model";
+import {AssignedCourseResponse, StudentChallengeScore, StudentScoresResponse, toAssignedCourseResponse} from "./model";
 import {prisma} from "../../../db";
 
 /**
@@ -13,9 +8,9 @@ export const listAssignedCoursesByClassroom = async (
     classroomId: string
 ): Promise<AssignedCourseResponse[]> => {
     const rows = await prisma.assignedCourse.findMany({
-        where: { classroomId, isAssigned: true, deletedAt: null },
+        where: { classroomId, isAssigned: true,  deletedAt: null },
         include: {
-            course: {
+             course: {
                 select: { id: true, title: true, slug: true, description: true }
             }
         },
@@ -25,11 +20,13 @@ export const listAssignedCoursesByClassroom = async (
         ],
     })
 
+
     return rows.map((ac) => ({
         id: ac.id,
         classroomId: ac.classroomId,
         courseId: ac.courseId,
         isAssigned: ac.isAssigned,
+        availableWeek: ac.availableWeek,
         addedAt: ac.addedAt,
         course: {
             id: ac.course.id,
@@ -38,6 +35,106 @@ export const listAssignedCoursesByClassroom = async (
             description: ac.course.description,
         }
     }))
+}
+
+export async function getAssignedCourseByClassroomAndSlug(
+    classroomId: string,
+    courseSlug: string,
+): Promise<AssignedCourseResponse> {
+    const ac = await prisma.assignedCourse.findFirstOrThrow({
+        where: {
+            classroomId,
+            isAssigned: true,
+            deletedAt: null,
+            course: { slug: courseSlug },
+        },
+        include: {
+            course: {
+                select: {
+                    id: true,
+                    title: true,
+                    slug: true,
+                    description: true,
+                },
+            },
+        },
+        orderBy: [
+            { course: { order: "asc" } },
+            { addedAt: "asc" },
+        ],
+    })
+
+    return {
+        id: ac.id,
+        classroomId: ac.classroomId,
+        courseId: ac.courseId,
+        isAssigned: ac.isAssigned,
+        availableWeek: ac.availableWeek,
+        addedAt: ac.addedAt,
+        course: {
+            id: ac.course.id,
+            title: ac.course.title,
+            slug: ac.course.slug,
+            description: ac.course.description,
+        },
+    }
+}
+
+export async function setAssignedCourseWeek(
+    classroomId: string,
+    courseSlug: string,
+    week: number,
+): Promise<AssignedCourseResponse> {
+    // 1) Lookup the Course ID and basic info
+    const course = await prisma.course.findUnique({
+        where: { slug: courseSlug },
+        select: {
+            id:          true,
+            title:       true,
+            slug:        true,
+            description: true,
+        },
+    })
+    if (!course) {
+        throw new Error(`Course with slug '${courseSlug}' not found`)
+    }
+
+    // 2) Update the AssignedCourse.availableWeek and include everything we need
+    const ac = await prisma.assignedCourse.update({
+        where: {
+            classroomId_courseId: {
+                classroomId,
+                courseId: course.id,
+            },
+        },
+        data: { availableWeek: week },
+        include: {
+            course: {
+                select: {
+                    id:          true,
+                    title:       true,
+                    slug:        true,
+                    description: true,
+                },
+            },
+        },
+    })
+
+    // 3) Map to AssignedCourseResponse
+    return {
+        id:            ac.id,
+        classroomId:   ac.classroomId,
+        courseId:      ac.courseId,
+        isAssigned:    ac.isAssigned,
+        availableWeek: ac.availableWeek,
+        addedAt:       ac.addedAt,
+        course: {
+            id:          ac.course.id,
+            title:       ac.course.title,
+            slug:        ac.course.slug,
+            description: ac.course.description,
+        },
+    }
 }
 
 export const assignCourseToClassroom = async (
@@ -126,7 +223,7 @@ export const listStudentsWithScoresBySlug = async (
     // 3) Load challenge metadata for this course
     const challenges = await prisma.challenge.findMany({
         where: { courseId, deletedAt: null },
-        select: { id: true, level: true, title: true },
+        select: { id: true, level: true, title: true,  week: true},
         orderBy: { level: 'asc' },
     })
     const challengeMap = new Map(challenges.map(c => [c.id, c]))
@@ -151,6 +248,7 @@ export const listStudentsWithScoresBySlug = async (
         const arr = scoresByStudent.get(s.studentId) || []
         arr.push({
             challengeId: s.challengeId,
+            week: meta.week,
             level: meta.level,
             title: meta.title,
             stars: s.stars,
