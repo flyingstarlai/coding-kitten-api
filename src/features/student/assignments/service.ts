@@ -108,7 +108,7 @@ export async function completeChallenge(
     if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
         throw new Error('Invalid or expired token')
     }
-    if (Date.now() - Number(timestamp) > 10 * 60 * 1000) {
+    if (Date.now() - Number(timestamp) > 60 * 60 * 1000) {
         throw new Error('Token expired')
     }
     await prisma.score.upsert({
