@@ -13,3 +13,4 @@ export const classroomAndCourseParamSchema = z.object({
     classroomId: z.string().cuid(),
     courseSlug:  z.string().min(3),
 })
+

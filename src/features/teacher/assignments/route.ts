@@ -3,12 +3,13 @@ import {zValidator} from "@hono/zod-validator";
 import {
     assignCourseToClassroom,
     listAssignedCoursesByClassroom,
-    listStudentsWithScoresBySlug
+    listStudentsWithScoresBySlug, setAssignedCourseWeek
 } from "./service";
 import {ensureClassroomMember} from "../../../middleware/ensure-classroom-member";
 import {assignCourseSchema} from "../classrooms/schema";
-import {StudentScoresResponse} from "./model";
-import {classroomAndCourseParamSchema, classroomIdParamSchema} from "../../../shared/schema";
+import {AssignedCourseResponse, StudentScoresResponse} from "./model";
+import {classroomAndCourseParamSchema, classroomIdParamSchema } from "../../../shared/schema";
+import {enableBodySchema} from "./schema";
 
 export const assignmentsRoutes = new Hono()
     .get(
@@ -72,5 +73,28 @@ export const assignmentsRoutes = new Hono()
                 console.error(e)
                 return c.json({ error: 'Internal server error' }, 500)
             }
+        }
+    )
+    .put(
+        '/:classroomId/:courseSlug/enable',
+        zValidator('param', classroomAndCourseParamSchema),
+        zValidator("json", enableBodySchema),
+        async (c) => {
+            const { classroomId, courseSlug } = c.req.valid("param")
+            const { week }                    = c.req.valid("json")
+
+            try {
+                const update: AssignedCourseResponse =
+                    await setAssignedCourseWeek(classroomId, courseSlug, week)
+                return c.json(update)
+            } catch (e: any) {
+                if (e.message === 'Assignment not found for classroom/course') {
+                    return c.json({ error: e.message }, 404)
+                }
+                console.error(e)
+                return c.json({ error: 'Internal server error' }, 500)
+            }
+
+
         }
     )
