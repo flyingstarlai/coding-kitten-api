@@ -10,6 +10,8 @@ export const createUser = (data: RegisterUser) =>
 export const findUserByEmail = (email: string) =>
     prisma.user.findUnique({ where: { email } })
 
+export const findUserById = (id: string) => prisma.user.findFirst({ where: { id } })
+
 export const createToken = (payload: JWTPayload) =>  sign(payload, process.env.JWT_SECRET!)
 
 export const authenticateTeacher = async (email: string, password: string) => {
@@ -22,11 +24,11 @@ export const authenticateTeacher = async (email: string, password: string) => {
 }
 
 export const authenticateStudent = async (
-    code: string,
+    room: string,
     username: string,
     password: string
 ) => {
-    const classroom = await prisma.classroom.findUnique({ where: { code } })
+    const classroom = await prisma.classroom.findUnique({ where: { room } })
     if(!classroom) return null
     const classroomId = classroom.id
     const enrollment = await prisma.enrollment.findFirst({

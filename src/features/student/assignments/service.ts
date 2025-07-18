@@ -2,8 +2,8 @@ import { createHmac, timingSafeEqual } from 'crypto'
 import { prisma } from '../../../db'
 import {BeginResponse, CompletionResponse, StudentChallengeResponse} from './model'
 
-const SECRET = process.env.LEVEL_SECRET!
-if (!SECRET) throw new Error('Missing LEVEL_SECRET')
+const SECRET = process.env.HMAC_SECRET!
+if (!SECRET) throw new Error('Missing HMAC_SECRET')
 
 /**
  * Helper: Verifies the requested level is unlocked for the student.

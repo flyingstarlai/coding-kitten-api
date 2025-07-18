@@ -12,7 +12,20 @@ export const teacherLoginSchema = z.object({
 })
 
 export const studentLoginSchema = z.object({
-    code: z.string().length(6),
+    room: z.string().length(6),
     username:    z.string().min(1),
     password:    z.string().min(6),
+})
+
+
+export const classroomLoginViewSchema = z.object({
+    room: z.string().length(8),
+    code: z.string().length(6),
+})
+
+
+export const classroomLoginSchema = z.object({
+    room: z.string().length(8),
+    code: z.string().length(6),
+    username: z.string().min(1)
 })

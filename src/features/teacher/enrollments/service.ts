@@ -1,9 +1,9 @@
 import * as XLSX from 'xlsx'
-import {EnrollmentImportResult, EnrollmentResponse} from "./model";
-import { Role } from "../../../generated/prisma"
+ import { Role } from "../../../generated/prisma"
 
 import {prisma} from "../../../db";
 import generateFakeEmail from "../../../utils/generate-fake-email";
+import {EnrollmentImportResult, EnrollmentResponse} from "./model";
 
 export const listEnrollmentsByClassroom = async (
     classroomId: string
@@ -143,4 +143,30 @@ export async function importEnrollmentsFromExcel(
     }
 
     return results
+}
+
+
+export async function getEnrolledStudents(room: string) {
+   return prisma.enrollment.findMany({
+        where: {
+            classroom: { room },
+            deletedAt: null
+        },
+        include: { student: { select: { id: true, name: true } } },
+        orderBy: { username: "asc" }
+    })
+
+}
+
+export async function getEnrolledStudentByUsername(room: string, username: string) {
+    return prisma.enrollment.findFirst({
+        where: {
+            classroom: { room },
+            username,
+            deletedAt: null
+        },
+        include: { student: { select: { id: true, name: true, role: true } } },
+        orderBy: { username: "asc" }
+    })
+
 }

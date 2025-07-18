@@ -7,7 +7,7 @@ export type ClassroomResponse = {
     name: string
     teacherId: string
     maxStudents: number
-    code: string
+    room: string
     createdAt: Date
 }
 
@@ -21,6 +21,12 @@ export const toClassroomResponse = (c: Classroom) => ({
     name: c.name,
     teacherId: c.teacherId,
     maxStudents: c.maxStudents,
-    code: c.code,
+    room: c.room,
     createdAt: c.createdAt,
 })
+
+
+export type ClassroomSession = {
+    code: string,
+    expiredAt: Date
+}

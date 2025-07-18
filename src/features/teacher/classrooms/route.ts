@@ -1,5 +1,5 @@
 import {
-    createClassroom,
+    createClassroom, createClassroomSession,
     listClassrooms,
     softDeleteClassroom,
     updateClassroom
@@ -52,5 +52,14 @@ export const classroomsRoutes = new Hono()
             const { classroomId } = c.req.valid('param')
             const result = await softDeleteClassroom(classroomId)
             return c.json({ id: result.id })
+        }
+    )
+    .post(
+        '/:classroomId/session',
+        zValidator('param', classroomIdParamSchema),
+        async (c) => {
+            const { classroomId } = c.req.valid('param')
+            const session = await createClassroomSession(classroomId, 60)
+            return c.json({ code: session.code, expiresAt: session.expiresAt })
         }
     )

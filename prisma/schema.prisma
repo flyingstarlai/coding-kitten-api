@@ -40,7 +40,7 @@ model User {
 model Classroom {
   id          String    @id @default(cuid())
   name        String
-  code        String    @unique
+  room        String    @unique
   teacher     User      @relation("TeacherClassrooms", fields: [teacherId], references: [id])
   teacherId   String
   createdAt   DateTime  @default(now())
@@ -51,6 +51,17 @@ model Classroom {
   assignedCourses AssignedCourse[]
 
   defaultForUsers User[] @relation("UserDefaultClassroom")
+
+  ClassroomSession ClassroomSession[]
+}
+
+model ClassroomSession {
+  id           String     @id @default(cuid())
+  classroom    Classroom  @relation(fields: [classroomId], references: [id])
+  classroomId  String
+  code         String     @unique
+  expiresAt    DateTime
+  createdAt    DateTime   @default(now())
 }
 
 model Enrollment {
