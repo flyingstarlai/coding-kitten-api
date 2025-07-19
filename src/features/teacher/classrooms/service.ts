@@ -1,4 +1,4 @@
-import {ClassroomResponse, toClassroomResponse} from "./model";
+import {ClassroomResponse, ClassroomSessionResponse, toClassroomResponse} from "./model";
 import {prisma} from "../../../db";
 import {updateUser} from "../users/service";
 import { randomUUID } from "crypto"
@@ -60,8 +60,8 @@ export const restoreClassroom = (
 export async function createClassroomSession(
     classroomId: string,
     ttlMinutes = 60
-) {
-    const code = randomUUID().slice(0, 8)  // e.g. "a1b2c3d4"
+): Promise<ClassroomSessionResponse> {
+    const code = randomUUID().slice(0, 6)  // e.g. "a1b2c3d4"
     const now  = new Date()
     const expiresAt = new Date(now.valueOf() + ttlMinutes * 60000)
 
@@ -70,27 +70,27 @@ export async function createClassroomSession(
         where: { classroomId, expiresAt: { gt: now } }
     })
 
-    return prisma.classroomSession.create({
+    const session =  await prisma.classroomSession.create({
         data: {classroomId, code, expiresAt}
     })
+
+    return {
+        id: session.classroomId,
+        code: session.code,
+        expiresAt: session.expiresAt
+    }
 }
 
 
 export async function verifyClassroomSession(
-    room: string,
     code: string
 ) {
-     const classroom = await prisma.classroom.findUniqueOrThrow({
-        where: { room },
-        select: { id: true }
-    })
 
-     const session = await prisma.classroomSession.findFirst({
+     const session = await prisma.classroomSession.findUnique({
         where: {
-            classroomId: classroom.id,
             code,
             expiresAt: { gt: new Date() }
         }
     })
-    return session != null
+    return session?.classroomId
 }

@@ -30,3 +30,9 @@ export type ClassroomSession = {
     code: string,
     expiredAt: Date
 }
+
+export type  ClassroomSessionResponse = {
+    id: string,
+    code: string,
+    expiresAt: Date,
+}

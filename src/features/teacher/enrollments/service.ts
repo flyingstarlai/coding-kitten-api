@@ -146,10 +146,10 @@ export async function importEnrollmentsFromExcel(
 }
 
 
-export async function getEnrolledStudents(room: string) {
+export async function getEnrolledStudents(classroomId: string) {
    return prisma.enrollment.findMany({
         where: {
-            classroom: { room },
+            classroomId,
             deletedAt: null
         },
         include: { student: { select: { id: true, name: true } } },
@@ -158,10 +158,10 @@ export async function getEnrolledStudents(room: string) {
 
 }
 
-export async function getEnrolledStudentByUsername(room: string, username: string) {
+export async function getEnrolledStudentByUsername(classroomId: string, username: string) {
     return prisma.enrollment.findFirst({
         where: {
-            classroom: { room },
+            classroomId,
             username,
             deletedAt: null
         },

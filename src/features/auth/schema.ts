@@ -18,14 +18,12 @@ export const studentLoginSchema = z.object({
 })
 
 
-export const classroomLoginViewSchema = z.object({
-    room: z.string().length(8),
+export const codeQuerySchema = z.object({
     code: z.string().length(6),
 })
 
 
 export const classroomLoginSchema = z.object({
-    room: z.string().length(8),
     code: z.string().length(6),
     username: z.string().min(1)
 })

@@ -60,6 +60,6 @@ export const classroomsRoutes = new Hono()
         async (c) => {
             const { classroomId } = c.req.valid('param')
             const session = await createClassroomSession(classroomId, 60)
-            return c.json({ code: session.code, expiresAt: session.expiresAt })
+            return c.json({ id: session.id, code: session.code, expiresAt: session.expiresAt })
         }
     )

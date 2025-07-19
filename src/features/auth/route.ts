@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import {
     classroomLoginSchema,
-    classroomLoginViewSchema,
+    codeQuerySchema,
     signupSchema,
     studentLoginSchema,
     teacherLoginSchema
@@ -79,16 +79,18 @@ export const authRoutes = new Hono()
 )
     .get(
         '/login/room',
-        zValidator('json', classroomLoginViewSchema),
-
+        zValidator("query", codeQuerySchema),
         async (c) => {
-            const { room, code } = c.req.valid('json')
+            const {  code } = c.req.valid('query')
 
-            const valid = await verifyClassroomSession(room, code)
-            if (!valid) {
+            const classroomId = await verifyClassroomSession(code)
+            if (!classroomId) {
                 return c.json({ error: "Invalid or expired session code" }, 401)
             }
-            const enrollments = await getEnrolledStudents(room)
+
+            console.log("ROOM", classroomId)
+            const enrollments = await getEnrolledStudents(classroomId)
+            console.log("ENROLL", enrollments)
             return c.json(
                 enrollments.map((e) => ({
                     username: e.username,
@@ -102,14 +104,14 @@ export const authRoutes = new Hono()
         '/login/room',
         zValidator('json', classroomLoginSchema),
         async (c) => {
-            const { room, code, username } = c.req.valid('json')
+            const { code, username } = c.req.valid('json')
 
-            const valid = await verifyClassroomSession(room, code)
-            if (!valid) {
+            const classroomId = await verifyClassroomSession(code)
+            if (!classroomId) {
                 return c.json({ error: "Invalid or expired session code" }, 401)
             }
 
-            const enrollment = await getEnrolledStudentByUsername(room, username)
+            const enrollment = await getEnrolledStudentByUsername(classroomId, username)
             if(!enrollment) {
                 return c.json({ error: "Student not found" }, 404)
             }
