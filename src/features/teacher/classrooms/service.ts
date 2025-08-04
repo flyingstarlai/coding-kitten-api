@@ -2,6 +2,10 @@ import {ClassroomResponse, ClassroomSessionResponse, toClassroomResponse} from "
 import {prisma} from "../../../db";
 import {updateUser} from "../users/service";
 import { randomUUID } from "crypto"
+import {findUserById} from "../../auth/service";
+import generateFakeEmail from "../../../utils/generate-fake-email";
+import { Role } from "../../../generated/prisma"
+
 
 
 
@@ -28,6 +32,30 @@ export const createClassroom = async (
     })
 
     await updateUser(data.teacherId, { defaultClassroomId: classroom.id})
+
+    const user = await findUserById(data.teacherId)
+    if(user) {
+        const username = "teacher"
+        const email = generateFakeEmail(classroom.id, username)
+        const teacher = await prisma.user.create({
+            data: {
+                email,
+                password: user.password,
+                name: user.name,
+                role: Role.STUDENT,
+                defaultClassroomId: classroom.id,
+            }
+        })
+        await prisma.enrollment.create({
+            data: {
+                classroomId: classroom.id,
+                studentId: teacher.id,
+                username
+            }
+        })
+     }
+
+
     return toClassroomResponse(classroom)
 }
 

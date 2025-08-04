@@ -90,9 +90,11 @@ export const authRoutes = new Hono()
 
             console.log("ROOM", classroomId)
             const enrollments = await getEnrolledStudents(classroomId)
-            console.log("ENROLL", enrollments)
+
             return c.json(
-                enrollments.map((e) => ({
+                enrollments
+                    .filter(e => e.username !== "teacher")
+                    .map((e) => ({
                     username: e.username,
                     name:     e.student.name
                 }))

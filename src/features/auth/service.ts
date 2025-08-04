@@ -30,6 +30,7 @@ export const authenticateStudent = async (
 ) => {
     const classroom = await prisma.classroom.findUnique({ where: { room } })
     if(!classroom) return null
+
     const classroomId = classroom.id
     const enrollment = await prisma.enrollment.findFirst({
         where: { classroomId, username, deletedAt: null },
